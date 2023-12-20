@@ -1,10 +1,10 @@
-using multivarBernoulli
+using MultivariateBernoulli
 using Test
 using Aqua
 
-@testset "multivarBernoulli.jl" begin
+@testset "MultivariateBernoulli.jl" begin
     @testset "Code quality (Aqua.jl)" begin
-        Aqua.test_all(multivarBernoulli; deps_compat = false, ambiguities = false)
+        Aqua.test_all(MultivariateBernoulli; deps_compat = false, ambiguities = false)
     end
     # Write your tests here.
 end
