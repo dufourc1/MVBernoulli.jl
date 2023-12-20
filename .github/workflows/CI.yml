@@ -63,6 +63,6 @@ jobs:
         shell: julia --project=docs --color=yes {0}
         run: |
           using Documenter: DocMeta, doctest
-          using MultivariateBernoulli
-          DocMeta.setdocmeta!(MultivariateBernoulli, :DocTestSetup, :(using MultivariateBernoulli); recursive=true)
-          doctest(MultivariateBernoulli)
+          using MultivariateBernoullis
+          DocMeta.setdocmeta!(MultivariateBernoullis, :DocTestSetup, :(using MultivariateBernoullis); recursive=true)
+          doctest(MultivariateBernoullis)

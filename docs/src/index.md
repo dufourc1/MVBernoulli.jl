@@ -1,14 +1,14 @@
 ```@meta
-CurrentModule = MultivariateBernoulli
+CurrentModule = MultivariateBernoullis
 ```
 
-# MultivariateBernoulli
+# MultivariateBernoullis
 
-Documentation for [MultivariateBernoulli](https://github.com/dufourc1/MultivariateBernoulli.jl).
+Documentation for [MultivariateBernoullis](https://github.com/dufourc1/MultivariateBernoullis.jl).
 
 ```@index
 ```
 
 ```@autodocs
-Modules = [MultivariateBernoulli]
+Modules = [MultivariateBernoullis]
 ```

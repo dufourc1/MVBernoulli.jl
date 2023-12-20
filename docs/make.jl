@@ -1,16 +1,16 @@
-using MultivariateBernoulli
+using MultivariateBernoullis
 using Documenter
 
-DocMeta.setdocmeta!(MultivariateBernoulli, :DocTestSetup, :(using MultivariateBernoulli); recursive=true)
+DocMeta.setdocmeta!(MultivariateBernoullis, :DocTestSetup, :(using MultivariateBernoullis); recursive=true)
 
 makedocs(;
-    modules=[MultivariateBernoulli],
+    modules=[MultivariateBernoullis],
     authors="Charles Dufour",
-    repo="https://github.com/dufourc1/MultivariateBernoulli.jl/blob/{commit}{path}#{line}",
-    sitename="MultivariateBernoulli.jl",
+    repo="https://github.com/dufourc1/MultivariateBernoullis.jl/blob/{commit}{path}#{line}",
+    sitename="MultivariateBernoullis.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://dufourc1.github.io/MultivariateBernoulli.jl",
+        canonical="https://dufourc1.github.io/MultivariateBernoullis.jl",
         edit_link="main",
         assets=String[],
     ),
@@ -20,6 +20,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/dufourc1/MultivariateBernoulli.jl",
+    repo="github.com/dufourc1/MultivariateBernoullis.jl",
     devbranch="main",
 )
