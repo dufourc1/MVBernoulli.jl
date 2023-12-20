@@ -30,13 +30,14 @@ struct BinaryMarkovChain{M, Ttransition} <: AbstractBinaryMC
     function BinaryMarkovChain(T::AbstractMatrix{Ttransition}, order) where {Ttransition}
         if size(T, 1) != size(T, 2)
             throw(ArgumentError("T must be a square matrix"))
-        elseif size(T, 1) != 2^order
-            throw(ArgumentError("T must be of size 2^order"))
+        elseif size(T, 1) != 2^(order+1)
+            throw(ArgumentError("T must be of size 2^(order+1)"))
         end
-        state_index_vector = Vector{Vector{Bool}}(undef, 2^order)
+        num_states = 2^(order+1)
+        state_index_vector = Vector{Vector{Bool}}(undef,num_states)
         state_vector_index = Dict{Tuple, Int}()
-        @inbounds for i in 1:(2^order)
-            state_index_vector[i] = index_to_binary_vector(i, order)
+        @inbounds for i in 1:(num_states)
+            state_index_vector[i] = index_to_binary_vector(i, order+1)
             state_vector_index[Tuple(state_index_vector[i])] = i
         end
         new{order, Ttransition}(T, state_index_vector, state_vector_index, order)
@@ -63,32 +64,33 @@ end
 
 function sample(chain::BinaryMarkovChain, n::Int)
     result = Vector{Bool}(undef, n)
-    result[1:(chain.order)] .= rand(get_bernoulli_distribution(chain))
-    index = chain.state_vector_index[Tuple(result[1:(chain.order)])]
+    result[1:(chain.order+1)] .= rand(get_bernoulli_distribution(chain))
+    index = chain.state_vector_index[Tuple(result[1:(chain.order+1)])]
     index_zero = Dict(i => findfirst(chain.T[i, :] .> 0) for i in 1:size(chain.T, 1))
-    @inbounds for i in (chain.order + 1):n
-        index = chain.state_vector_index[Tuple(result[(i - chain.order):(i - 1)])]
+    @inbounds for i in (chain.order + 2):n
+        index = chain.state_vector_index[Tuple(result[(i - chain.order-1):(i - 1)])]
         result[i] = rand() > chain.T[index, index_zero[index]]
     end
     return result
 end
 
 function fit_transition(data::Vector{T}, chain::BinaryMarkovChain) where {T}
-    total = zeros(2^chain.order)
-    transition = zeros(2^chain.order, 2^chain.order)
-    @inbounds for t in (chain.order + 1):lastindex(data)
-        index = chain.state_vector_index[Tuple(data[(t - chain.order):(t - 1)])]
+    num_states = 2^(chain.order+1)
+    total = zeros(num_states)
+    transition = zeros(num_states, num_states)
+    @inbounds for t in (chain.order + 2):lastindex(data)
+        index = chain.state_vector_index[Tuple(data[(t - chain.order-1):(t - 1)])]
         total[index] += 1
-        transition[index, chain.state_vector_index[Tuple(data[(t - chain.order + 1):t])]] += 1
+        transition[index, chain.state_vector_index[Tuple(data[(t - chain.order):t])]] += 1
     end
     total[total .== 0] .= 1
     return BinaryMarkovChain(transition ./ total, chain.order)
 end
 
 function fit_moment(data::Vector{T}, chain::BinaryMarkovChain) where {T}
-    tabulation = zeros(2^chain.order)
-    @inbounds for t in 1:(lastindex(data) - chain.order + 1)
-        tabulation[chain.state_vector_index[Tuple(data[(t):(t + chain.order - 1)])]] += 1
+    tabulation = zeros(2^(chain.order+1))
+    @inbounds for t in 1:(lastindex(data) - chain.order)
+        tabulation[chain.state_vector_index[Tuple(data[(t):(t + chain.order)])]] += 1
     end
-    return from_tabulation(tabulation ./ (length(data) - chain.order + 1))
+    return from_tabulation(tabulation ./ (length(data) - chain.order))
 end
