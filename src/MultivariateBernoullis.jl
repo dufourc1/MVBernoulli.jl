@@ -1,4 +1,4 @@
-module MultivariateBernoulliss
+module MultivariateBernoullis
 import Random: AbstractRNG
 
 using Distributions
