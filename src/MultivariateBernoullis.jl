@@ -2,6 +2,7 @@ module MultivariateBernoullis
 import Random: AbstractRNG
 
 using Distributions
+using Kronecker, LinearAlgebra
 
 export MultivariateBernoulli, BinaryMarkovChain
 
