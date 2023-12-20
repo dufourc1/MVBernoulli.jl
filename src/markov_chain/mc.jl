@@ -59,7 +59,18 @@ function get_bernoulli_distribution(chain::AbstractBinaryMC)
 end
 
 function from_bernoulli_distribution(distribution::MultivariateBernoulli)
-    @error "Not implemented"
+    num_states = 2^length(distribution)
+    T = zeros(num_states, num_states)
+    state = Vector{Bool}(undef, length(distribution))
+    for i in 1:num_states
+        state .= index_to_binary_vector(i, length(distribution))
+        out_0 = binary_vector_to_index([state[2:end]... ,false])
+        out_1 = binary_vector_to_index([state[2:end]... ,true])
+        p = distribution.tabulation.p[out_1]/(distribution.tabulation.p[out_0] + distribution.tabulation.p[out_1])
+        T[i, out_1] = p
+        T[i, out_0] = 1 - p
+    end
+    return BinaryMarkovChain(T, length(distribution)-1)
 end
 
 function sample(chain::BinaryMarkovChain, n::Int)
@@ -75,6 +86,8 @@ function sample(chain::BinaryMarkovChain, n::Int)
 end
 
 function fit_transition(data::Vector{T}, chain::BinaryMarkovChain) where {T}
+    # inneficient implementation since it does not take advantage of the fact that
+    # the chain is of order m, not m+1
     num_states = 2^(chain.order+1)
     total = zeros(num_states)
     transition = zeros(num_states, num_states)
