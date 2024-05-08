@@ -1,10 +1,11 @@
 module MVBernoulli
+
 import Random: AbstractRNG
 
 using Distributions
 using Kronecker, LinearAlgebra
 
-export MultivariateBernoulli, BinaryMarkovChain
+export MultivariateBernoulli
 
 # utils first
 include("utils/indices.jl")

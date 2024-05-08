@@ -41,7 +41,7 @@ function Distributions._rand!(rng::AbstractRNG,
         d::MultivariateBernoulli{T},
         x::Vector{Bool}) where {T}
     index = rand(rng, d.tabulation)
-    index_to_sequence!(x, index, d)
+    index_to_binary_vector!(x, index)
 end
 
 # allocating but for now will do
@@ -57,36 +57,13 @@ function Distributions._rand!(rng::AbstractRNG,
 end
 
 function Distributions._logpdf(d::MultivariateBernoulli, x::Vector{T}) where {T}
-    index = sequence_to_index(x, d)
+    index = binary_vector_to_index(x)
     return logpdf(d.tabulation, index)
 end
 
-function index_to_sequence(index::Int, d::MultivariateBernoulli)
-    index_to_sequence!(copy(Vector{Bool}(undef, length(d))), index, d)
-end
-
-function index_to_sequence!(sequence::Vector{Bool}, index::Int, d::MultivariateBernoulli)
-    if index < 1
-        throw(ArgumentError("index must be greater than 0"))
-    elseif index > 2^length(d)
-        throw(ArgumentError("$(index) = index > 2^length(d) = $(2^length(d))"))
-    end
-    digits!(sequence, index - 1; base = 2)
-end
-
-function sequence_to_index(sequence::AbstractVector{T}, d::MultivariateBernoulli) where {T}
-    if length(sequence) != length(d)
-        throw(ArgumentError("sequence ($(length(sequence))) and distribution ($(length(d))) must have the same length"))
-    end
-    index = 1
-    for (i, s) in enumerate(sequence)
-        index += s * 2^(i - 1)
-    end
-    return index
-end
 
 function Distributions.fit_mle(::MultivariateBernoulli, data::AbstractMatrix{T}) where {T}
-    data_tab = sequence_to_index.(eachcol(data), Ref(dist))
+    data_tab = binary_vector_to_index.(eachcol(data))
     return from_tabulation(fit_mle(Categorical, data_tab).p)
 end
 
@@ -144,7 +121,6 @@ function correlation_matrix(d::MultivariateBernoulli)
     m = length(d)
     corr = -1 .* ones(m, m)
     ps = marginals(d)
-    #clamp!(ps, 1e-15, 1-1e-15)
     for i in 1:m
         for j in 1:m
             if i == j

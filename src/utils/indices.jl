@@ -1,8 +1,12 @@
 function index_to_binary_vector(index::Int, size::Int)
-    if index < 1
-        throw(ArgumentError("index must be greater than 0"))
-    end
-    return digits(index - 1, base = 2, pad = size) |> reverse
+    result = zeros(Int, size)
+    index_to_binary_vector!(result, index)
+    return result
+end
+
+function index_to_binary_vector!(binary_vector::AbstractVector{T}, index::Int) where {T}
+    digits!(binary_vector, index - 1; base = 2)
+    reverse!(binary_vector)
 end
 
 function binary_vector_to_index(binary_vector::AbstractVector{T}) where {T}
