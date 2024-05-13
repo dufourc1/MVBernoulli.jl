@@ -89,7 +89,7 @@ function _tabulation_to_centered_moments(p_tabulation::Vector{T},
     end
     result = transition * p_tabulation
     #set small entries to 0
-    result[abs.(result) .< tol] .= 0
+    #result[abs.(result) .< tol] .= 0
     return result
 end
 
@@ -119,42 +119,40 @@ end
 
 function correlation_matrix(d::MultivariateBernoulli)
     m = length(d)
-    corr = -1 .* ones(m, m)
+    corr = Matrix{Union{Float64, Missing}}(missing, m, m)
     ps = marginals(d)
     for i in 1:m
         for j in 1:m
             if i == j
                 corr[i, j] = 1
-                continue
+            elseif ps[i] ∈ [0, 1] || ps[j] ∈ [0, 1]
+                corr[i,j] = NaN
+            else
+                k = 1 + 2^(i - 1) + 2^(j - 1)
+                cov = d.normalized_moments[k]
+                norm = sqrt((ps[i] - ps[i]^2) * (ps[j] - ps[j]^2))
+                corr[i, j] = cov / norm
             end
-            if false
-                if ps[i] == 1
-                    if ps[j] == 0
-                        corr[i, j] = -1
-                    elseif ps[j] == 1
-                        corr[i, j] = 1
-                    else
-                        corr[i, j] = 0
-                    end
-                    continue
-                elseif ps[i] == 0
-                    if ps[j] == 0
-                        corr[i, j] = 1
-                    elseif ps[j] == 1
-                        corr[i, j] = -1
-                    else
-                        corr[i, j] = 0
-                    end
-                    continue
-                elseif ps[j] == 0 || ps[j] == 1
-                    corr[i, j] = 0
-                    continue
-                end
-            end
-            k = 1 + 2^(i - 1) + 2^(j - 1)
-            corr[i, j] = d.normalized_moments[k] /
-                         (sqrt(ps[i] - ps[i]^2) * sqrt(ps[j] - ps[j]^2))
         end
     end
     return corr
+end
+
+function covariance_matrix(d::MultivariateBernoulli)
+    m = length(d)
+    cov = -1 .* ones(m, m)
+    ps = marginals(d)
+    for i in 1:m
+        for j in 1:m
+            if i == j
+                cov[i, j] = ps[i] * (1 - ps[i])
+            elseif ps[i] ∈ [0, 1] || ps[j] ∈ [0, 1]
+                cov[i,j] = NaN
+            else
+                k = 1 + 2^(i - 1) + 2^(j - 1)
+                cov[i, j] = d.normalized_moments[k]
+            end
+        end
+    end
+    return cov
 end
