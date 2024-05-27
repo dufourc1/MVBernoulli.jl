@@ -14,6 +14,6 @@ include("utils/indices.jl")
 include("distribution.jl")
 
 # markov chains
-include("markov_chain/mc.jl")
-include("markov_chain/mtd.jl")
+#include("markov_chain/mc.jl")
+#include("markov_chain/mtd.jl")
 end

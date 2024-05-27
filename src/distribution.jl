@@ -18,13 +18,13 @@ possible outcomes.
 The ordinary moments are the expected values of the variables and of their products.
 
 ```math
-\\mathbb{E}\\left[\\prod_{i \\in I X_i}\\right],
+\\mathbb{E}\\left[\\prod_{i \\in I} X_i\\right],
 ```
 where `I` is a subset of `1:m`.
 
 The normalized moments are
 ```math
-\\mathbb{E}\\left[\\prod_{i \\in I} (X_i - \\mathbb{X_i})\\right].
+\\mathbb{E}\\left[\\prod_{i \\in I} (X_i - \\mathbb{E}[X_i])\\right].
 ```
 """
 struct MultivariateBernoulli{T <: Real} <: DiscreteMultivariateDistribution
