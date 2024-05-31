@@ -156,3 +156,46 @@ function covariance_matrix(d::MultivariateBernoulli)
     end
     return cov
 end
+
+
+function pmf(d::MultivariateBernoulli{T}, x::Vector{B}) where {T,B}
+    return exp(logpdf(d, x))
+end
+
+
+function pmf(d::MultivariateBernoulli{T}, x::Vector{Union{B,Missing}}) where {T,B}
+    indices_missing = findall(ismissing.(x))
+    indices_non_missing = findall(.!ismissing.(x))
+    x_new = Vector{Bool}(undef, length(x))
+    x_new[indices_non_missing] .= x[indices_non_missing]
+    # sum over all possible values for the missing values
+    result = 0
+    for i in 1:2^length(indices_missing)
+        x_new[indices_missing] .= index_to_binary_vector(i, length(indices_missing))
+        result += exp(logpdf(d, x_new))
+    end
+    return result
+end
+
+
+function conditional_proba(d::MultivariateBernoulli{T}, x::Vector{Bx}, y::Vector{By}) where {T,Bx,By}
+    proba_y = pmf(d, y)
+    if proba_y == 0
+        return 0
+    end
+    x_inter_y = Vector{Union{Bx,By, Missing}}(undef, length(x))
+    for i in 1:length(x)
+        if !ismissing(x[i])
+            if !ismissing(y[i]) && x[i] != y[i] # x and y are incompatible
+                return 0
+            else
+                x_inter_y[i] = x[i] # x is fixed
+            end
+        elseif !ismissing(y[i])
+            x_inter_y[i] = y[i] # y is fixed
+        else
+            x_inter_y[i] = missing # both are missing
+        end
+    end
+    return pmf(d, x_inter_y) / proba_y
+end
