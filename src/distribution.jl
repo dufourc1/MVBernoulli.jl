@@ -158,8 +158,20 @@ function covariance_matrix(d::MultivariateBernoulli)
 end
 
 
+function Distributions.insupport(d::MultivariateBernoulli, x::Vector{Bool})
+    return length(x) == d.m
+end
+
+function Distributions.insupport(d::MultivariateBernoulli, x::Vector{R}) where {R<:Real}
+    return length(x) == d.m && all(0 .<= x .<= 1) && all(isinteger.(x))
+end
+
+
 function pmf(d::MultivariateBernoulli{T}, x::Vector{B}) where {T,B}
-    return exp(logpdf(d, x))
+    if !insupport(d, x)
+        return 0
+    end
+    return exp(logpdf(d.tabulation,binary_vector_to_index(x)))
 end
 
 
@@ -181,7 +193,7 @@ end
 function conditional_proba(d::MultivariateBernoulli{T}, x::Vector{Bx}, y::Vector{By}) where {T,Bx,By}
     proba_y = pmf(d, y)
     if proba_y == 0
-        return 0
+        return NaN
     end
     x_inter_y = Vector{Union{Bx,By, Missing}}(undef, length(x))
     for i in 1:length(x)
