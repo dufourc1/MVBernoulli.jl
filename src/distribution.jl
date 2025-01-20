@@ -193,13 +193,13 @@ end
 function conditional_proba(d::MultivariateBernoulli{T}, x::Vector{Bx}, y::Vector{By}) where {T,Bx,By}
     proba_y = pmf(d, y)
     if proba_y == 0
-        return NaN
+        return proba_y
     end
     x_inter_y = Vector{Union{Bx,By, Missing}}(undef, length(x))
     for i in 1:length(x)
         if !ismissing(x[i])
             if !ismissing(y[i]) && x[i] != y[i] # x and y are incompatible
-                return 0
+                return zero(typeof(proba_y))
             else
                 x_inter_y[i] = x[i] # x is fixed
             end
