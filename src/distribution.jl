@@ -61,7 +61,6 @@ function Distributions._logpdf(d::MultivariateBernoulli, x::Vector{T}) where {T}
     return logpdf(d.tabulation, index)
 end
 
-
 function Distributions.fit_mle(::MultivariateBernoulli, data::AbstractMatrix{T}) where {T}
     data_tab = binary_vector_to_index.(eachcol(data))
     return from_tabulation(fit_mle(Categorical, data_tab).p)
@@ -126,7 +125,7 @@ function correlation_matrix(d::MultivariateBernoulli)
             if i == j
                 corr[i, j] = 1
             elseif ps[i] ∈ [0, 1] || ps[j] ∈ [0, 1]
-                corr[i,j] = NaN
+                corr[i, j] = NaN
             else
                 k = 1 + 2^(i - 1) + 2^(j - 1)
                 cov = d.normalized_moments[k]
@@ -147,7 +146,7 @@ function covariance_matrix(d::MultivariateBernoulli)
             if i == j
                 cov[i, j] = ps[i] * (1 - ps[i])
             elseif ps[i] ∈ [0, 1] || ps[j] ∈ [0, 1]
-                cov[i,j] = NaN
+                cov[i, j] = NaN
             else
                 k = 1 + 2^(i - 1) + 2^(j - 1)
                 cov[i, j] = d.normalized_moments[k]
@@ -157,45 +156,49 @@ function covariance_matrix(d::MultivariateBernoulli)
     return cov
 end
 
-
 function Distributions.insupport(d::MultivariateBernoulli, x::Vector{Bool})
     return length(x) == d.m
 end
 
-function Distributions.insupport(d::MultivariateBernoulli, x::Vector{R}) where {R<:Real}
+function Distributions.insupport(d::MultivariateBernoulli, x::Vector{R}) where {R <: Real}
     return length(x) == d.m && all(0 .<= x .<= 1) && all(isinteger.(x))
 end
 
-
-function pmf(d::MultivariateBernoulli{T}, x::Vector{B}) where {T,B}
+function pmf(d::MultivariateBernoulli{T}, x::Vector{B}) where {T, B}
     if !insupport(d, x)
         return 0
     end
-    return exp(logpdf(d.tabulation,binary_vector_to_index(x)))
+    return exp(logpdf(d.tabulation, binary_vector_to_index(x)))
 end
 
-
-function pmf(d::MultivariateBernoulli{T}, x::Vector{Union{B,Missing}}) where {T,B}
+function pmf(d::MultivariateBernoulli{T}, x::Vector{Union{B, Missing}}) where {T, B}
     indices_missing = findall(ismissing.(x))
     indices_non_missing = findall(.!ismissing.(x))
     x_new = Vector{Bool}(undef, length(x))
     x_new[indices_non_missing] .= x[indices_non_missing]
     # sum over all possible values for the missing values
     result = 0
-    for i in 1:2^length(indices_missing)
+    for i in 1:(2^length(indices_missing))
         x_new[indices_missing] .= index_to_binary_vector(i, length(indices_missing))
         result += exp(logpdf(d, x_new))
     end
     return result
 end
 
+"""
+    conditional probability of x given y. Missing values in y are considered as the unknown values, while
+    missing values in x are considered as not important. This means that if we consider the random variable X, and we set
+    x = [1, missing, 0, missing] and y = [missing, 1, 0, missing], we are computing the conditional probability of X[1]=1 given X[2] = 1 and X[3] = 0.
 
-function conditional_proba(d::MultivariateBernoulli{T}, x::Vector{Bx}, y::Vector{By}) where {T,Bx,By}
+    By convention, if proba(y) = 0, then the conditional probability is 0.
+"""
+function conditional_proba(
+        d::MultivariateBernoulli{T}, x::Vector{Bx}, y::Vector{By}) where {T, Bx, By}
     proba_y = pmf(d, y)
     if proba_y == 0
         return proba_y
     end
-    x_inter_y = Vector{Union{Bx,By, Missing}}(undef, length(x))
+    x_inter_y = Vector{Union{Bx, By, Missing}}(undef, length(x))
     for i in 1:length(x)
         if !ismissing(x[i])
             if !ismissing(y[i]) && x[i] != y[i] # x and y are incompatible
