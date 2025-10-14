@@ -35,7 +35,7 @@ struct MultivariateBernoulli{T <: Real} <: DiscreteMultivariateDistribution
 end
 
 Distributions.length(d::MultivariateBernoulli) = d.m
-Distributions.eltype(::MultivariateBernoulli) = Vector{Bool}
+Distributions.eltype(d::MultivariateBernoulli) = Bool
 
 function Distributions._rand!(rng::AbstractRNG,
         d::MultivariateBernoulli{T},
@@ -44,14 +44,20 @@ function Distributions._rand!(rng::AbstractRNG,
     index_to_binary_vector!(x, index)
 end
 
+Distributions.rand(d::MultivariateBernoulli) = Distributions.rand(default_rng(), d)
+
+function Distributions.rand(rng::AbstractRNG,
+        d::MultivariateBernoulli{T}) where {T}
+    index = rand(rng, d.tabulation)
+    return SizedVector{d.m, Bool}(index_to_binary_vector(index, d.m))
+end
+
 # allocating but for now will do
 function Distributions._rand!(rng::AbstractRNG,
         s::MultivariateBernoulli{T},
         A::Array{Bool, 2}) where {T}
-    x = Vector{Bool}(undef, size(A, 1))
     for i in 1:size(A, 2)
-        Distributions._rand!(rng, s, x)
-        A[:, i] .= x
+        A[:, i] .= index_to_binary_vector(rand(rng, s.tabulation), s.m)
     end
     return A
 end
