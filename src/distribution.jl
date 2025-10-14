@@ -35,7 +35,7 @@ struct MultivariateBernoulli{T <: Real} <: DiscreteMultivariateDistribution
 end
 
 Distributions.length(d::MultivariateBernoulli) = d.m
-Distributions.eltype(::MultivariateBernoulli) = Bool
+Distributions.eltype(::MultivariateBernoulli) = Vector{Bool}
 
 function Distributions._rand!(rng::AbstractRNG,
         d::MultivariateBernoulli{T},
